@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bw.movie.R;
 import com.bw.movie.bean.CinemaBean;
+import com.bw.movie.view.YyXqActivity;
 
 import java.util.List;
 
@@ -39,6 +40,14 @@ public class CinemaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ((MyHolder) holder).cinema_name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    String id = list.get(position).getId();
+                    SharedPreferences sharedPreferences = context.getSharedPreferences("yyid", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor edit = sharedPreferences.edit();
+                    edit.putString("id", id);
+                    edit.commit();
+                    Intent intent = new Intent();
+                    intent.setClass(context, YyXqActivity.class);
+                    context.startActivity(intent);
 
                 }
             });

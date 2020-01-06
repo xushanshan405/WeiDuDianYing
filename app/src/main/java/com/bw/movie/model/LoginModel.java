@@ -35,6 +35,7 @@ import com.bw.movie.bean.YingPingBean;
 import com.bw.movie.bean.YingTingBean;
 import com.bw.movie.bean.YingYuanXQBean;
 import com.bw.movie.bean.YuYueBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.bean.ZuoBean;
 import com.bw.movie.bean.FindBean;
@@ -669,6 +670,26 @@ public class LoginModel implements HomeConteract.LoginContreact.IModel, HomeCont
                 });
     }
 
+    @Override
+    public void getZFBDataModel(String userId, String sessionId, String payType, String orderId, IModelZFBCallback callback) {
+        RequestNet.getInstance().create().getZhiFuBao(userId,sessionId,payType,orderId)
+                .compose(CommonSchedulers.<ZhiFuBaoBean>io2main())
+                .subscribe(new CommonObserver<ZhiFuBaoBean>() {
+                               @Override
+                               public void onNext(ZhiFuBaoBean zhiFuBaoBean) {
+                                   callback.onZBFSuccess(zhiFuBaoBean);
+                               }
+
+                               @Override
+                               public void onError(Throwable e) {
+                                    callback.onZFBFailure(e);
+                               }
+                           }
+                  );
+    }
+
+
+
 
     @Override
     public void getPaiQiDataModel(String cinemaId, Integer page, String count, HomeConteract.PaiQiContreact.IModel.IModelCallback callback) {
@@ -756,6 +777,23 @@ public class LoginModel implements HomeConteract.LoginContreact.IModel, HomeCont
                     @Override
                     public void onError(Throwable e) {
                         callback.onZFFailure(e);
+                    }
+                });
+    }
+
+    @Override
+    public void getZFBDataModels(String userId, String sessionId, String payType, String orderId, IModelZFBsCallback callback) {
+        RequestNet.getInstance().create().getZhiFuBao(userId,sessionId,payType,orderId)
+                .compose(CommonSchedulers.io2main())
+                .subscribe(new CommonObserver<ZhiFuBaoBean>() {
+                    @Override
+                    public void onNext(ZhiFuBaoBean zhiFuBaoBean) {
+                        callback.onZFBSuccess(zhiFuBaoBean);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        callback.onZFBFailure(e);
                     }
                 });
     }
@@ -1061,6 +1099,24 @@ public class LoginModel implements HomeConteract.LoginContreact.IModel, HomeCont
                     }
                 });
     }
+
+    @Override
+    public void getZhiFuBao(String userId, String sessionId, String payType, String orderId, IModelZhiFuBaoCallback callback) {
+        RequestNet.getInstance().create().getZhiFuBao(userId, sessionId, payType, orderId)
+                .compose(CommonSchedulers.io2main())
+                .subscribe(new CommonObserver<ZhiFuBaoBean>() {
+                    @Override
+                    public void onNext(ZhiFuBaoBean zhiFuBaoBean) {
+                        callback.onZFBSuccess(zhiFuBaoBean);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        callback.onZFBFailure(e);
+                    }
+                });
+    }
+
 }
 
 

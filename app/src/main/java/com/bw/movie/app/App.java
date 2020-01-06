@@ -7,12 +7,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Environment;
+import android.util.Log;
 
 import com.bw.movie.utils.DataCleanManager;
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.liys.doubleclicklibrary.ViewDoubleHelper;
+import com.tencent.android.tpush.XGIOperateCallback;
+import com.tencent.android.tpush.XGPushConfig;
+import com.tencent.android.tpush.XGPushManager;
 import com.tencent.mm.opensdk.constants.ConstantsAPI;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
@@ -28,9 +32,20 @@ public class App extends Application {
     public static IWXAPI api;
     public static SharedPreferences sharedPreferences;
 
+    private String token;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        initXGPush();
         sContext = this;
         Fresco.initialize(this, ImagePipelineConfig.newBuilder(this)
                 //图片缓存路径
@@ -75,5 +90,25 @@ public class App extends Application {
 
     public static App getAppContext() {
         return sContext;
+    }
+    private void initXGPush(){
+        XGPushConfig.enableDebug(this,true);
+        XGPushManager.registerPush(this, new XGIOperateCallback(){
+            @Override
+            public void onSuccess(Object data, int flag){
+                //token在设备卸载重装的时候有可能会变
+                Log.e("TPush","注册成功，设备token为："+ data);
+                setToken(data.toString());
+            }
+            @Override
+            public void onFail(Object data, int errCode,String msg) {
+                Log.e("TPush","注册失败，错误码："+ errCode +",错误信息："+ msg);
+            }
+        });
+
+//设置账号
+        XGPushManager.registerPush(getApplicationContext(),"XINGE");
+// 设置标签
+        XGPushManager.setTag(this,"XINGE");
     }
 }

@@ -1,10 +1,13 @@
 package com.bw.movie.view;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -20,6 +23,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alipay.sdk.app.PayTask;
 import com.bumptech.glide.Glide;
 import com.bw.movie.Base.BaseActivity;
 import com.bw.movie.R;
@@ -29,15 +33,18 @@ import com.bw.movie.app.App;
 import com.bw.movie.bean.XQBean;
 import com.bw.movie.bean.XiaDanBean;
 import com.bw.movie.bean.YingTingBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.bean.ZuoBean;
 import com.bw.movie.contract.HomeConteract;
 import com.bw.movie.presenter.ZuoPresenter;
+import com.bw.movie.utils.PayResult;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -45,6 +52,17 @@ import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 
 public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConteract.ZuoContreact.IView {
+    private int SDK_PAY_FLAG =1;
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            Toast.makeText(ZuoActivity.this, ""+msg.obj, Toast.LENGTH_SHORT).show();
+            PayResult payResult = new PayResult((Map<String, String>) msg.obj);
+
+            Toast.makeText(ZuoActivity.this, payResult.getResult(),
+                    Toast.LENGTH_LONG).show();
+        };
+    };
     private double fare;
     public static final String TAG = "ZuoActivity";
     @BindView(R.id.zuo_name)
@@ -63,6 +81,7 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
     private String seat;
     private String hallId;
     private ZuoAdapter zuoAdapter;
+    private String orderId;
 
     @Override
     protected ZuoPresenter providePresenter() {
@@ -83,7 +102,7 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
         String cinemaId = getIntent().getStringExtra("yyid");
         SharedPreferences name = getSharedPreferences("users", Context.MODE_PRIVATE);
         String movieid = name.getString("movieId", "");
-        mPresenter.getXQPresenter( movieid);
+        mPresenter.getXQPresenter(movieid);
         Log.d(TAG, "movieId: " + movieid);
         Log.d(TAG, "cinemaId: " + cinemaId);
         mPresenter.getYingTingPresenter(movieid, cinemaId);
@@ -95,12 +114,12 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
                 String userId = App.sharedPreferences.getString("userId", null);
                 String md5 = MD5(userId + scheduleId + "movie");
 
-               if (userId!=null &&sessionId!=null){
-                   mPresenter.getXD(userId, sessionId, scheduleId, seat, md5);
-               }else {
-                   Toast.makeText(ZuoActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
-                   startActivity(new Intent(ZuoActivity.this,MainActivity.class));
-               }
+                if (userId != null && sessionId != null) {
+                    mPresenter.getXD(userId, sessionId, scheduleId, seat, md5);
+                } else {
+                    Toast.makeText(ZuoActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(ZuoActivity.this, MainActivity.class));
+                }
             }
         });
 
@@ -111,7 +130,7 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
         String usedd = getIntent().getStringExtra("usedd");
         if (dyid != null && id != null) {
             mPresenter.getYingTingPresenter(dyid, id);
-            mPresenter.getXQPresenter( dyid);
+            mPresenter.getXQPresenter(dyid);
         }
 
     }
@@ -126,7 +145,7 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
         Log.d(TAG, "onXQSuccess: " + data.getMessage());
         XQBean.ResultBean result = data.getResult();
         String videoUrl = result.getShortFilmList().get(0).getVideoUrl();
-        zuoPin.setUp(videoUrl,JCVideoPlayer.SCREEN_LAYOUT_NORMAL,"");
+        zuoPin.setUp(videoUrl, JCVideoPlayer.SCREEN_LAYOUT_NORMAL, "");
         Glide.with(this).load(result.getShortFilmList().get(0).getImageUrl()).into(zuoPin.thumbImageView);
         String name = result.getName();
         if (name != null) {
@@ -150,9 +169,8 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
         yingTingAdapter.getListenter(new YingTingAdapter.onSetChange() {
 
 
-
             @Override
-            public void getChange(String name,String id,double fare) {
+            public void getChange(String name, String id, double fare) {
                 mPresenter.getZuo(name);
                 hallId = name;
                 scheduleId = id;
@@ -178,10 +196,10 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
             zuoXuan.setAdapter(zuoAdapter);
             zuoAdapter.setListenter(new ZuoAdapter.setChange() {
                 @Override
-                public void getChange(String zuo,double anInt) {
-                    Log.d(TAG, "zuo: "+zuo);
+                public void getChange(String zuo, double anInt) {
+                    Log.d(TAG, "zuo: " + zuo);
                     seat = zuo;
-                    zuoJia.setText("支付"+anInt+"元");
+                    zuoJia.setText("支付" + anInt + "元");
                 }
             });
         }
@@ -197,8 +215,8 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
     @Override
     public void onXDSuccess(XiaDanBean data) {
         String message = data.getMessage();
-        if (data.getStatus().equals("0000")){
-            String orderId = data.getOrderId();
+        if (data.getStatus().equals("0000")) {
+            orderId = data.getOrderId();
             Dialog dialog = new Dialog(ZuoActivity.this, R.style.DialogTheme);
             View inflate = View.inflate(ZuoActivity.this, R.layout.weizhi_layout, null);
             RadioButton weixin = inflate.findViewById(R.id.weixin);
@@ -206,7 +224,7 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
             dialog.setContentView(inflate);
             Window window = dialog.getWindow();
             window.setGravity(Gravity.BOTTOM);
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             String s = String.valueOf(fare);
             zuoJia.setText(s);
             dialog.show();
@@ -216,20 +234,33 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
                     dialog.dismiss();
                 }
             });
-           weixin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-               @Override
-               public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                   String sessionId = App.sharedPreferences.getString("sessionId", null);
-                   String userId = App.sharedPreferences.getString("userId", null);
-                  if (userId!=null &&sessionId!=null){
-                      mPresenter.getZF(userId,sessionId,"1",orderId);
-                  }else {
-                      Toast.makeText(ZuoActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
-                      startActivity(new Intent(ZuoActivity.this,MainActivity.class));
-                  }
-                   dialog.dismiss();
-               }
-           });
+            weixin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    String sessionId = App.sharedPreferences.getString("sessionId", null);
+                    String userId = App.sharedPreferences.getString("userId", null);
+                    if (userId != null && sessionId != null) {
+                        mPresenter.getZF(userId, sessionId, "1", orderId);
+                    } else {
+                        Toast.makeText(ZuoActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(ZuoActivity.this, MainActivity.class));
+                    }
+                    dialog.dismiss();
+                }
+            }); zhifubao.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    String sessionId = App.sharedPreferences.getString("sessionId", null);
+                    String userId = App.sharedPreferences.getString("userId", null);
+                    if (userId != null && sessionId != null) {
+                        mPresenter.getZFB(userId, sessionId, "1", orderId);
+                    } else {
+                        Toast.makeText(ZuoActivity.this, "请先登录", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(ZuoActivity.this, MainActivity.class));
+                    }
+                    dialog.dismiss();
+                }
+            });
 
         }
     }
@@ -242,7 +273,7 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
     @Override
     public void onZFSuccess(ZhiFuBean data) {
 
-        if (data.getStatus().equals("0000")){
+        if (data.getStatus().equals("0000")) {
             PayReq payReq = new PayReq();
             payReq.appId = data.getAppId();
             payReq.nonceStr = data.getNonceStr();
@@ -260,6 +291,37 @@ public class ZuoActivity extends BaseActivity<ZuoPresenter> implements HomeConte
 
     @Override
     public void onZFFailure(Throwable e) {
+
+    }
+
+    @Override
+    public void onZFBSuccess(ZhiFuBaoBean data) {
+        if (data.getStatus().equals("0000")) {
+            Toast.makeText(this, "支付宝", Toast.LENGTH_SHORT).show();
+            final String orderInfo = orderId;
+            // 订单信息
+            String results = data.getResult();
+            Runnable payRunnable = new Runnable() {
+
+                @Override
+                public void run() {
+                    PayTask alipay = new PayTask(ZuoActivity.this);
+                    Map<String, String> result = alipay.payV2(results, true);
+
+                    Message msg = new Message();
+                    msg.what = SDK_PAY_FLAG;
+                    msg.obj = result;
+                    mHandler.sendMessage(msg);
+                }
+            };
+            // 必须异步调用
+            Thread payThread = new Thread(payRunnable);
+            payThread.start();
+        }
+    }
+
+    @Override
+    public void onZFBFailure(Throwable e) {
 
     }
 

@@ -66,7 +66,6 @@ public class SheZhiActivity extends BaseActivity {
                 startActivity(new Intent(this,GengXinActivity.class));
                 break;
             case R.id.xiugai:
-                startActivity(new Intent(this,XiuGaiActivity.class));
                 break;
             case R.id.tuichu_but:
                 App.sharedPreferences.edit().clear().commit();

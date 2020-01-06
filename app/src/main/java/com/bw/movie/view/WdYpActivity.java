@@ -80,6 +80,9 @@ public class WdYpActivity extends BaseActivity<WDYPPresenter> implements HomeCon
         if (userId !=null && sessionId!=null){
             mPresenter.getWDDYPPresenter(userId, sessionId);
         }else {
+
+
+
             Toast.makeText(context, "请先登录", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(this,MainActivity.class));
             finish();

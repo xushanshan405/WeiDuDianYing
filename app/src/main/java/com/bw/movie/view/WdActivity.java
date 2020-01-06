@@ -217,7 +217,7 @@ public class WdActivity extends BaseActivity<UserPresenter> implements HomeConte
                 Button confirm = (Button) inflate.findViewById(R.id.confirm);
                 Button cancel = (Button) inflate.findViewById(R.id.cancel);
                 // 设置button的点击事件及获取editview中的文本内容
-                confirm.setOnClickListener(new android.view.View.OnClickListener() {
+                confirm.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View arg0) {
@@ -231,7 +231,7 @@ public class WdActivity extends BaseActivity<UserPresenter> implements HomeConte
                     }
                 });
                 // 取消按钮
-                cancel.setOnClickListener(new android.view.View.OnClickListener() {
+                cancel.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View arg0) {

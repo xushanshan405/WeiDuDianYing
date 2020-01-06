@@ -33,6 +33,7 @@ import com.bw.movie.bean.YingPingBean;
 import com.bw.movie.bean.YingTingBean;
 import com.bw.movie.bean.YingYuanXQBean;
 import com.bw.movie.bean.YuYueBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.bean.ZuoBean;
 import com.bw.movie.bean.FindBean;
@@ -719,10 +720,18 @@ public interface HomeConteract {
             void getZFDataModel(String userId, String sessionId, String payType, String orderId, IModelZFCallback callback);
 
             //model层中的接口回调
+            //微信
             interface IModelZFCallback {
                 void onZFSuccess(ZhiFuBean data);
 
                 void onZFFailure(Throwable e);
+            }
+            void getZFBDataModel(String userId, String sessionId, String payType, String orderId, IModelZFBCallback callback);
+            //支付宝
+            interface IModelZFBCallback {
+                void onZBFSuccess(ZhiFuBaoBean data);
+
+                void onZFBFailure(Throwable e);
             }
 
         }
@@ -749,6 +758,10 @@ public interface HomeConteract {
 
             void onZFFailure(Throwable e);
 
+            void onZFBSuccess(ZhiFuBaoBean data);
+
+            void onZFBFailure(Throwable e);
+
         }
 
         //presenter层   命名必须是IPresenter
@@ -763,6 +776,8 @@ public interface HomeConteract {
             void getXD(String userId, String sessionId, String scheduleId, String seat, String sign);
 
             void getZF(String userId, String sessionId, String payType, String orderId);
+
+            void getZFB(String userId, String sessionId, String payType, String orderId);
 
         }
     }
@@ -863,6 +878,13 @@ public interface HomeConteract {
                 void onZFSuccess(ZhiFuBean data);
 
                 void onZFFailure(Throwable e);
+            }  //model层中的接口回调
+            void getZFBDataModels(String userId, String sessionId, String payType, String orderId, IModelZFBsCallback callback);
+
+            interface IModelZFBsCallback {
+                void onZFBSuccess(ZhiFuBaoBean data);
+
+                void onZFBFailure(Throwable e);
             }
         }
 
@@ -875,6 +897,10 @@ public interface HomeConteract {
             void onZFSuccess(ZhiFuBean data);
 
             void onZFFailure(Throwable e);
+
+            void onZFBSuccess(ZhiFuBaoBean data);
+
+            void onZFBFailure(Throwable e);
         }
 
         //presenter层   命名必须是IPresenter
@@ -883,6 +909,7 @@ public interface HomeConteract {
             //登录
             void getGPJLPresenter(String userId, String sessionId, Integer page, String count, String status);
             void getZFs(String userId, String sessionId, String payType, String orderId);
+            void getZFBs(String userId, String sessionId, String payType, String orderId);
         }
     }
 
@@ -1268,6 +1295,14 @@ public interface HomeConteract {
 
                 void onZFFailure(Throwable e);
             }
+            void getZhiFuBao(String userId, String sessionId, String payType, String orderId, IModelZhiFuBaoCallback callback);
+
+            //model层中的接口回调
+            interface IModelZhiFuBaoCallback {
+                void onZFBSuccess(ZhiFuBaoBean data);
+
+                void onZFBFailure(Throwable e);
+            }
 
         }
 
@@ -1280,6 +1315,10 @@ public interface HomeConteract {
             void onZFSuccess(ZhiFuBean data);
 
             void onZFFailure(Throwable e);
+
+            void onZFBSuccess(ZhiFuBaoBean data);
+
+            void onZFBFailure(Throwable e);
         }
 
         //presenter层   命名必须是IPresenter
@@ -1289,6 +1328,8 @@ public interface HomeConteract {
             void getDingDanPresenter(String userId, String sessionId,String orderId);
 
             void getZFs(String userId, String sessionId, String payType, String orderId);
+
+            void getZFBs(String userId, String sessionId, String payType, String orderId);
         }
     }
 

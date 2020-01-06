@@ -54,7 +54,7 @@ public class GengXinActivity extends BaseActivity {
     protected static final int SET_MAX = 0;
     public static final int UPDATE_VIEW = 1;
     private Handler mHandler = new Handler(){
-        public void handleMessage(android.os.Message msg) {
+        public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SET_MAX://设置进度条的最大值
                     int filelength = msg.arg1;

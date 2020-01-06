@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.bw.movie.R;
 import com.bw.movie.bean.FjYyBean;
+import com.bw.movie.view.YyXqActivity;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
 
@@ -47,7 +48,14 @@ public class FjyyAdapter extends XRecyclerView.Adapter<XRecyclerView.ViewHolder>
                 ((MyHolder) holder).fjyy_linear.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
+                        String id = list.get(position).getId();
+                        SharedPreferences sharedPreferences = context.getSharedPreferences("yyid", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor edit = sharedPreferences.edit();
+                        edit.putString("id", id);
+                        edit.commit();
+                        Intent intent = new Intent();
+                        intent.setClass(context, YyXqActivity.class);
+                        context.startActivity(intent);
                     }
                 });
             }

@@ -1,4 +1,4 @@
-package com.bw.movie.ustil;
+package com.bw.movie.utils;
 
 import android.content.Context;
 

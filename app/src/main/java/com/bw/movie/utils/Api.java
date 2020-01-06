@@ -33,6 +33,7 @@ import com.bw.movie.bean.YingPingBean;
 import com.bw.movie.bean.YingTingBean;
 import com.bw.movie.bean.YingYuanXQBean;
 import com.bw.movie.bean.YuYueBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.bean.ZuoBean;
 import com.bw.movie.bean.FindBean;
@@ -207,13 +208,21 @@ public interface Api {
                                      @Field("seat") String seat,
                                      @Field("sign") String sign);
 
-    //支付
+    //微信支付
     @FormUrlEncoded
     @POST("movie/v2/verify/pay")
     Observable<ZhiFuBean> getZhiFu(@Header("userId") String userId,
                                    @Header("sessionId") String sessionId,
                                    @Field("payType") String payType,
                                    @Field("orderId") String orderId);
+
+    //支付宝支付
+ @FormUrlEncoded
+    @POST("movie/v2/verify/pay")
+    Observable<ZhiFuBaoBean> getZhiFuBao(@Header("userId") String userId,
+                                      @Header("sessionId") String sessionId,
+                                      @Field("payType") String payType,
+                                      @Field("orderId") String orderId);
 
     //购票记录
     @GET("user/v2/verify/findUserBuyTicketRecord")

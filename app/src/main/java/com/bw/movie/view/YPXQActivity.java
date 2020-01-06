@@ -24,6 +24,7 @@ import com.bw.movie.Base.BaseActivity;
 import com.bw.movie.R;
 import com.bw.movie.app.App;
 import com.bw.movie.bean.YingPiaoXingQing;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.contract.HomeConteract;
 import com.bw.movie.presenter.DingDanPresenter;
@@ -153,6 +154,16 @@ public class YPXQActivity extends BaseActivity<DingDanPresenter> implements Home
 
     @Override
     public void onZFFailure(Throwable e) {
+
+    }
+
+    @Override
+    public void onZFBSuccess(ZhiFuBaoBean data) {
+
+    }
+
+    @Override
+    public void onZFBFailure(Throwable e) {
 
     }
 

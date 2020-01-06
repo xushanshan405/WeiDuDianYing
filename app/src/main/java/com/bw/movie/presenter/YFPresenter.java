@@ -2,6 +2,7 @@ package com.bw.movie.presenter;
 
 import com.bw.movie.Base.BasePresenter;
 import com.bw.movie.bean.GPJLBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.contract.HomeConteract;
 import com.bw.movie.model.LoginModel;
@@ -55,5 +56,28 @@ public class YFPresenter extends BasePresenter<HomeConteract.GPJLContreact.IView
                 }
             }
         });
+    }
+
+    @Override
+    public void getZFBs(String userId, String sessionId, String payType, String orderId) {
+        loginModel.getZFBDataModels(userId, sessionId, payType, orderId, new HomeConteract.GPJLContreact.IModel.IModelZFBsCallback() {
+                    @Override
+                    public void onZFBSuccess(ZhiFuBaoBean data) {
+                        if (isViewAttached()){
+                            if (data!=null && data.getStatus().equals("0000")){
+                                getView().onZFBSuccess(data);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onZFBFailure(Throwable e) {
+                        if (isViewAttached()){
+                            getView().onZFBFailure(e);
+                        }
+                    }
+                }
+
+        );
     }
 }

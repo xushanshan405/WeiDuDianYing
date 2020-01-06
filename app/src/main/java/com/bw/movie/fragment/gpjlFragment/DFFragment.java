@@ -1,111 +1,210 @@
 package com.bw.movie.fragment.gpjlFragment;
 
+import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.os.Handler;
+import android.os.Message;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.alipay.sdk.app.PayTask;
+import com.bw.movie.Base.BaseFragment;
 import com.bw.movie.R;
+import com.bw.movie.adapter.DFAdapter;
+import com.bw.movie.app.App;
+import com.bw.movie.bean.GPJLBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
+import com.bw.movie.bean.ZhiFuBean;
+import com.bw.movie.contract.HomeConteract;
+import com.bw.movie.presenter.DFPresenter;
+import com.bw.movie.utils.PayResult;
+import com.bw.movie.view.ZuoActivity;
+import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.tencent.mm.opensdk.modelpay.PayReq;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link DFFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link DFFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class DFFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+import java.util.List;
+import java.util.Map;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+import butterknife.BindView;
 
-    private OnFragmentInteractionListener mListener;
 
-    public DFFragment() {
-        // Required empty public constructor
-    }
+public class DFFragment extends BaseFragment<DFPresenter> implements HomeConteract.GPJLContreact.IView {
+    private int SDK_PAY_FLAG =1;
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            Toast.makeText(getActivity(), "" + msg.obj, Toast.LENGTH_SHORT).show();
+            PayResult payResult = new PayResult((Map<String, String>) msg.obj);
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment DFFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static DFFragment newInstance(String param1, String param2) {
-        DFFragment fragment = new DFFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            Toast.makeText(getActivity(), payResult.getResult(),
+                    Toast.LENGTH_LONG).show();
         }
+
+        ;
+    };
+    private String orderId;
+    private double fare;
+    @BindView(R.id.df_recy)
+    XRecyclerView dfrecy;
+
+    @BindView(R.id.meiyou_tu)
+    ImageView meiyoutu;
+
+    @BindView(R.id.meiyou_xinxi)
+    TextView meiyouxinxi;
+
+    @BindView(R.id.zong)
+    LinearLayout zong;
+
+    @Override
+    protected DFPresenter providePresenter() {
+        return new DFPresenter();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_df2, container, false);
-    }
+    protected void initData() {
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+    protected void initView() {
+        String userId = App.sharedPreferences.getString("userId", null);
+        String sessionId = App.sharedPreferences.getString("sessionId", null);
+        mPresenter.getGPJLPresenter(userId, sessionId, 1, "10", "1");
+        dfrecy.setLayoutManager(new LinearLayoutManager(getActivity()));
+    }
+
+    @Override
+    protected int provideLayoutId() {
+        return R.layout.fragment_df;
+
+    }
+
+    @Override
+    public void onGPJLSuccess(GPJLBean data) {
+        List<GPJLBean.ResultBean> result = data.getResult();
+        if (result != null) {
+            DFAdapter dfAdapter = new DFAdapter(getActivity(), result);
+            dfrecy.setAdapter(dfAdapter);
+            dfAdapter.getChange(new DFAdapter.onorderId() {
+                @Override
+                public void getorderId(String orderId) {
+                    if (orderId != null) {
+                        Dialog dialog = new Dialog(getActivity(), R.style.DialogTheme);
+                        View inflate = View.inflate(getActivity(), R.layout.weizhi_layout, null);
+                        RadioButton weixin = inflate.findViewById(R.id.weixin);
+                        RadioButton zhifubao = inflate.findViewById(R.id.zhifubao);
+                        dialog.setContentView(inflate);
+                        Window window = dialog.getWindow();
+                        window.setGravity(Gravity.BOTTOM);
+                        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        String s = String.valueOf(fare);
+                        dialog.show();
+                        inflate.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
+                        weixin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                                String sessionId = App.sharedPreferences.getString("sessionId", null);
+                                String userId = App.sharedPreferences.getString("userId", null);
+                                mPresenter.getZFs(userId, sessionId, "1", orderId);
+                                dialog.dismiss();
+                            }
+                        });
+                        zhifubao.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                                String sessionId = App.sharedPreferences.getString("sessionId", null);
+                                String userId = App.sharedPreferences.getString("userId", null);
+                                mPresenter.getZFBs(userId, sessionId, "1", orderId);
+                                dialog.dismiss();
+                            }
+                        });
+                    }
+                }
+            });
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+            zong.setVisibility(View.VISIBLE);
+            meiyoutu.setImageResource(R.mipmap.zanwuguanzhu);
+            meiyouxinxi.setText("暂无记录");
         }
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public void onGPJLFailure(Throwable e) {
+
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+    @Override
+    public void onZFSuccess(ZhiFuBean data) {
+        String message = data.getMessage();
+        if (data.getStatus().equals("0000")) {
+            PayReq payReq = new PayReq();
+            payReq.appId = data.getAppId();
+            payReq.nonceStr = data.getNonceStr();
+            payReq.partnerId = data.getPartnerId();
+            payReq.prepayId = data.getPrepayId();
+            payReq.sign = data.getSign();
+            payReq.timeStamp = data.getTimeStamp();
+            payReq.packageValue = data.getPackageValue();
+            payReq.extData = "app data";
+            App.api.sendReq(payReq);
+        }
+    }
+
+    @Override
+    public void onZFFailure(Throwable e) {
+
+    }
+
+    @Override
+    public void onZFBSuccess(ZhiFuBaoBean data) {
+        if (data.getStatus().equals("0000")) {
+            Toast.makeText(getActivity(), "支付宝", Toast.LENGTH_SHORT).show();
+            final String orderInfo = orderId;
+            // 订单信息
+            String results = data.getResult();
+            Runnable payRunnable = new Runnable() {
+
+                @Override
+                public void run() {
+                    PayTask alipay = new PayTask(getActivity());
+                    Map<String, String> result = alipay.payV2(results, true);
+
+                    Message msg = new Message();
+                    msg.what = SDK_PAY_FLAG;
+                    msg.obj = result;
+                    mHandler.sendMessage(msg);
+                }
+            };
+            // 必须异步调用
+            Thread payThread = new Thread(payRunnable);
+            payThread.start();
+        }
+    }
+
+    @Override
+    public void onZFBFailure(Throwable e) {
+
     }
 }

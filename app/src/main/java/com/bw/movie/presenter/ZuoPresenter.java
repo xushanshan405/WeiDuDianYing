@@ -4,6 +4,7 @@ import com.bw.movie.Base.BasePresenter;
 import com.bw.movie.bean.XQBean;
 import com.bw.movie.bean.XiaDanBean;
 import com.bw.movie.bean.YingTingBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
 import com.bw.movie.bean.ZhiFuBean;
 import com.bw.movie.bean.ZuoBean;
 import com.bw.movie.contract.HomeConteract;
@@ -116,6 +117,27 @@ public class ZuoPresenter extends BasePresenter<HomeConteract.ZuoContreact.IView
 
             @Override
             public void onZFFailure(Throwable e) {
+                if (isViewAttached()) {
+                    getView().onZFFailure(e);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void getZFB(String userId, String sessionId, String payType, String orderId) {
+        loginModel.getZFBDataModel(userId, sessionId, payType, orderId, new HomeConteract.ZuoContreact.IModel.IModelZFBCallback() {
+            @Override
+            public void onZBFSuccess(ZhiFuBaoBean data) {
+                if (isViewAttached()){
+                    if (data != null && data.getStatus().equals("0000")) {
+                        getView().onZFBSuccess(data);
+                    }
+                }
+            }
+
+            @Override
+            public void onZFBFailure(Throwable e) {
                 if (isViewAttached()) {
                     getView().onZFFailure(e);
                 }

@@ -1,111 +1,111 @@
 package com.bw.movie.fragment.gpjlFragment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.alipay.sdk.app.PayTask;
+import com.bw.movie.Base.BaseFragment;
 import com.bw.movie.R;
+import com.bw.movie.adapter.YFAdapter;
+import com.bw.movie.app.App;
+import com.bw.movie.bean.GPJLBean;
+import com.bw.movie.bean.ZhiFuBaoBean;
+import com.bw.movie.bean.ZhiFuBean;
+import com.bw.movie.contract.HomeConteract;
+import com.bw.movie.presenter.YFPresenter;
+import com.bw.movie.utils.PayResult;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link YFFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link YFFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class YFFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+import java.util.List;
+import java.util.Map;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+import butterknife.BindView;
 
-    private OnFragmentInteractionListener mListener;
+public class YFFragment extends BaseFragment<YFPresenter> implements HomeConteract.GPJLContreact.IView {
 
-    public YFFragment() {
-        // Required empty public constructor
-    }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment YFFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static YFFragment newInstance(String param1, String param2) {
-        YFFragment fragment = new YFFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @BindView(R.id.yf_recy)
+    RecyclerView yfrecy;
+
+    @BindView(R.id.meiyou_tu)
+    ImageView meiyou_tu;
+    @BindView(R.id.meiyou_xinxi)
+    TextView meiyouxinxi;
+
+    @BindView(R.id.zong)
+    LinearLayout zong;
+    @Override
+    protected YFPresenter providePresenter() {
+        return new YFPresenter();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    protected void initData() {
+
+    }
+
+    @Override
+    protected void initView() {
+        String userId = App.sharedPreferences.getString("userId", null);
+        String sessionId = App.sharedPreferences.getString("sessionId", null);
+        mPresenter.getGPJLPresenter(userId, sessionId, 1, "10", "2");
+        yfrecy.setLayoutManager(new LinearLayoutManager(getActivity()));
+    }
+
+
+    @Override
+    protected int provideLayoutId() {
+        return R.layout.fragment_yf;
+    }
+    @Override
+    public void onGPJLSuccess(GPJLBean data) {
+        List<GPJLBean.ResultBean> result = data.getResult();
+        if (result != null) {
+            yfrecy.setAdapter(new YFAdapter(getActivity(), result));
+        }else {
+            zong.setVisibility(View.VISIBLE);
+            meiyou_tu.setImageResource(R.mipmap.zanwuguanzhu);
+            meiyouxinxi.setText("暂无记录");
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_yf2, container, false);
-    }
+    public void onGPJLFailure(Throwable e) {
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+    public void onZFSuccess(ZhiFuBean data) {
+
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public void onZFFailure(Throwable e) {
+
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+    @Override
+    public void onZFBSuccess(ZhiFuBaoBean data) {
+
+    }
+
+    @Override
+    public void onZFBFailure(Throwable e) {
+
     }
 }
